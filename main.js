@@ -3,7 +3,7 @@ const CANVAS_WIDTH = 800
 const CANVAS_HEIGHT = 600
 const PADDLE_WIDTH = 25
 const PADDLE_HEIGHT = 100
-const PADDLE_VELOCITY = 3
+const PADDLE_VELOCITY = 5
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -41,11 +41,35 @@ class Paddle {
     getScore() {
         return this.#score;
     }
+    scorePoint() {
+        this.#score += 1
+        if (this.#height - 8 > 0) {
+            this.#height -= 8
+            this.#y -= 4
+        }
+        else {
+            return true
+        }
+    }
     incY() {
         this.#y = Math.max(Math.floor(this.#width/2), this.#y - PADDLE_VELOCITY);
     }
     decY() {
         this.#y = Math.min(CANVAS_HEIGHT - this.#height - Math.floor(this.#width/2), this.#y + PADDLE_VELOCITY);
+    }
+    resetHeight() {
+        this.#height = PADDLE_HEIGHT;
+    }
+    ballCollision(xPos, yPos, radius, colour) {
+        if (colour == this.#colour) {
+            return false
+        }
+        if ((yPos > this.#y - radius) && (yPos < this.#y + this.#height + radius)) {
+            if ((xPos > this.#x - radius) && (xPos < this.#x + this.#width + radius)) {
+                return true;
+        return false;
+            }
+        }
     }
 }
 
@@ -82,19 +106,6 @@ class Ball {
         this.#x = Math.floor(CANVAS_WIDTH/2)
         this.#y = Math.floor(CANVAS_HEIGHT/2)
     }
-    paddleCollision(paddle) {
-        let middlePaddle = {
-            x: Math.floor(paddle.getX() - paddle.getWidth() / 2),
-            y: Math.floor(paddle.getY() + paddle.getHeight() / 2),
-        };
-        if (Math.abs(middlePaddle.y - this.#y) < paddle.getHeight() / 2){
-            console.log(Math.abs(middlePaddle.y - this.#y) < paddle.getHeight() / 2)
-        }
-        if (Math.abs(paddle.getX() - this.#x) < 2 
-            && Math.abs(middlePaddle.y - this.#y) < paddle.getHeight() / 2) {
-            return true
-        }
-    }
     offSide() {
         // collisions with walls
         if (this.#x - this.#radius < 0) {
@@ -106,16 +117,16 @@ class Ball {
             return "right"
         }
     }
+    flipX() {
+        this.#xVel *= -1
+        this.changeColour()
+    }
     move(paddles) {
         this.#x += this.#xVel;
         this.#y += this.#yVel;
         // collision with top & bottom walls
         if (this.#y - this.#radius < 0 || this.#y + this.#radius > CANVAS_HEIGHT) {
             this.#yVel *= -1;
-
-        paddles.foreach(paddle => {
-            pad
-        });
         };
     }
 }
@@ -134,7 +145,7 @@ let paddle2 = new Paddle(x=CANVAS_WIDTH - PADDLE_WIDTH * 2,  // a distance of it
                         colour="blue",
                         score=0);
 
-let ball = new Ball(radius=10, 3, 4)
+let ball = new Ball(radius=10, xVel=5, yVel=6)
 
 function update() {
     // Player input
@@ -150,15 +161,27 @@ function update() {
     else if (pressedKeys.includes("arrowup")) {
         paddle2.incY()
     };
+    
     // move the ball (collisions with top & bottom walls dealt with in this method)
     ball.move()
 
-    if (ball.offSide() == "left") {
-        paddle2.incScore()
+    let paddle_collision = (
+        paddle1.ballCollision(ball.getX(), ball.getY(), ball.getRadius(), ball.getColour())
+        || paddle2.ballCollision(ball.getX(), ball.getY(), ball.getRadius(), ball.getColour())
+    )
+    if (paddle_collision) {
+        ball.flipX()
     }
-    else {
-        paddle1.incScore()
+
+    // going off the left or right of the screen (and incrementing scores accordingly)
+    let side = ball.offSide()
+    let endgame = null
+    if (side == "left") {
+        endgame = paddle2.scorePoint()
     }
+    else if (side == "right") {
+        endgame = paddle1.scorePoint()
+    };
     
     // clear shapes from previous frame
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -178,11 +201,15 @@ function update() {
 
     // display the score
     ctx.font = "50px Arial";
+    ctx.fillStyle = "red";
     ctx.fillText(paddle1.getScore(), Math.floor(CANVAS_WIDTH/4), Math.floor(CANVAS_HEIGHT / 2))
+    ctx.fillStyle = "blue";
     ctx.fillText(paddle2.getScore(), Math.floor(CANVAS_WIDTH*3/4), Math.floor(CANVAS_HEIGHT / 2))
 
     // call the main game loop again
+    if (!endgame) {
     requestAnimationFrame(update);
+    }
 };
 
 function init() {
