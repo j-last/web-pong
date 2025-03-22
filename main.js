@@ -67,9 +67,9 @@ class Paddle {
         if ((yPos > this.#y - radius) && (yPos < this.#y + this.#height + radius)) {
             if ((xPos > this.#x - radius) && (xPos < this.#x + this.#width + radius)) {
                 return true;
-        return false;
             }
         }
+        return false;
     }
 }
 
@@ -131,21 +131,6 @@ class Ball {
     }
 }
 
-let paddle1 = new Paddle(x=PADDLE_WIDTH,  // a distance of its width away from the left wall
-                        y=Math.floor(CANVAS_HEIGHT / 2), 
-                        width=PADDLE_WIDTH,
-                        height=PADDLE_HEIGHT,
-                        colour="red",
-                        score=0);
-
-let paddle2 = new Paddle(x=CANVAS_WIDTH - PADDLE_WIDTH * 2,  // a distance of its width away from the right wall
-                        y=Math.floor(CANVAS_HEIGHT / 2), 
-                        width=PADDLE_WIDTH,
-                        height=PADDLE_HEIGHT,
-                        colour="blue",
-                        score=0);
-
-let ball = new Ball(radius=10, xVel=5, yVel=6)
 
 function update() {
     // Player input
@@ -212,7 +197,9 @@ function update() {
     }
 };
 
+
 function init() {
+
     // adds listeners for keyboard input & manages it inside the "pressedKeys" list
         // key pressed (add to pressedKeys)
     window.addEventListener("keydown", e => {
@@ -227,6 +214,23 @@ function init() {
     // initiates main game loop
     update();
 };
+
+
+let paddle1 = new Paddle(x=PADDLE_WIDTH,  // a distance of its width away from the left wall
+    y=Math.floor(CANVAS_HEIGHT / 2), 
+    width=PADDLE_WIDTH,
+    height=PADDLE_HEIGHT,
+    colour="red",
+    score=0);
+
+let paddle2 = new Paddle(x=CANVAS_WIDTH - PADDLE_WIDTH * 2,  // a distance of its width away from the right wall
+        y=Math.floor(CANVAS_HEIGHT / 2), 
+        width=PADDLE_WIDTH,
+        height=PADDLE_HEIGHT,
+        colour="blue",
+        score=0);
+
+let ball = new Ball(radius=10, xVel=5, yVel=6)
 
 // ensures all content is loaded before the game starts
 window.onload = init();
